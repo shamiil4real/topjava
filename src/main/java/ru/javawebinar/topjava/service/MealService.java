@@ -34,7 +34,7 @@ public class MealService {
     }
 
     public List<Meal> getAll(int id) {
-        return (List<Meal>) repository.getAll(id);
+        return repository.getAll(id);
     }
 
     public List<Meal> getBetweenTimePeriod(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {

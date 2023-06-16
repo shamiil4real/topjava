@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository
@@ -40,27 +41,30 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public boolean delete(int id, int userId) {
         Map<Integer, Meal> meals = userMeals.get(userId);
-        return meals.remove(id) != null;
+        return meals != null && meals.remove(id) != null;
     }
 
     @Override
     public Meal get(int id, int userId) {
         Map<Integer, Meal> meals = userMeals.get(userId);
-        return meals.get(id);
+        return meals == null ? null : meals.get(id);
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
-        return userMeals.get(userId).values().stream()
-                .sorted(MEAL_COMPARATOR)
-                .collect(Collectors.toList());
+    public List<Meal> getAll(int userId) {
+        return filteredByPredicate(userId, meal -> true);
     }
 
     @Override
     public List<Meal> getBetweenTimePeriod(LocalDateTime startDate, LocalDateTime endDate, int userId) {
-        return userMeals.get(userId).values().stream()
+        return filteredByPredicate(userId, meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime(), startDate, endDate));
+    }
+
+    private List<Meal> filteredByPredicate(int userId, Predicate<Meal> predicate) {
+        Collection<Meal> meals = userMeals.get(userId).values();
+        return meals.stream()
                 .sorted(MEAL_COMPARATOR)
-                .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime(), startDate, endDate))
+                .filter(predicate)
                 .collect(Collectors.toList());
     }
 }
