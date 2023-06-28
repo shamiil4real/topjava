@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Range;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,20 +36,21 @@ import java.time.LocalTime;
 public class Meal extends AbstractBaseEntity {
 
     public static final String DELETE = "Meal.delete";
-    public static final String BY_ID = "Meal.get";
-    public static final String ALL_SORTED = "Meal.getAll";
-    public static final String BETWEEN_DATES = "Meal.getBetweenInclusive";
+    public static final String BY_ID = "Meal.getById";
+    public static final String ALL_SORTED = "Meal.getAllSorted";
+    public static final String BETWEEN_DATES = "Meal.getBetweenDates";
 
-    @Column(name = "date_time", nullable = false, unique = true)
+    @Column(name = "date_time", nullable = false)
     @NotNull
     private LocalDateTime dateTime;
 
     @Column(name = "description", nullable = false)
+    @Size(min = 2, max = 120)
     @NotBlank
     private String description;
 
     @Column(name = "calories", nullable = false)
-    @Range(min = 50, max = 5000)
+    @Range(min = 10, max = 5000)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)

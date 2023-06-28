@@ -1,7 +1,7 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -26,11 +26,44 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 })
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
-@Ignore
 public class MealServiceTest {
+
+    @Rule
+    public TestName name = new TestName();
 
     @Autowired
     private MealService service;
+
+    private long startTime;
+    private static final StringBuilder results = new StringBuilder();
+
+    @Before
+    public void recordStartTime() {
+        startTime = System.currentTimeMillis();
+    }
+
+    @After
+    public void recordEndTime() {
+        long endTime = System.currentTimeMillis();
+        String result = String.format("%c %-30s %c %-3d %s %c", '|', name.getMethodName(), '|',
+                (endTime - startTime), "ms", '|');
+        results.append(result).append("\n-------------------------------------------\n");
+    }
+
+    @AfterClass
+    public static void showResults() {
+        System.out.println("\n-------------------------------------------\n" + results);
+    }
+
+    @Test
+    public void create() {
+        Meal created = service.create(getNew(), USER_ID);
+        int newId = created.id();
+        Meal newMeal = getNew();
+        newMeal.setId(newId);
+        MEAL_MATCHER.assertMatch(created, newMeal);
+        MEAL_MATCHER.assertMatch(service.get(newId, USER_ID), newMeal);
+    }
 
     @Test
     public void delete() {
@@ -46,16 +79,6 @@ public class MealServiceTest {
     @Test
     public void deleteNotOwn() {
         assertThrows(NotFoundException.class, () -> service.delete(MEAL1_ID, ADMIN_ID));
-    }
-
-    @Test
-    public void create() {
-        Meal created = service.create(getNew(), USER_ID);
-        int newId = created.id();
-        Meal newMeal = getNew();
-        newMeal.setId(newId);
-        MEAL_MATCHER.assertMatch(created, newMeal);
-        MEAL_MATCHER.assertMatch(service.get(newId, USER_ID), newMeal);
     }
 
     @Test
